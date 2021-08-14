@@ -29,14 +29,14 @@ fetch_release_metadata() {
     popd
 }
 
-apt-get update
-apt-get install --no-install-recommends -y curl procps ca-certificates git
+# apt-get update
+# apt-get install --no-install-recommends -y curl procps ca-certificates git
 # curl in armhf-buster's image has SSL issues. Running c_rehash fixes it.
 # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=923479
-c_rehash
+# c_rehash
 ln -s `which echo` /usr/local/bin/whiptail
-curl -L -s $S6OVERLAY_RELEASE | tar xvzf - -C /
-mv /init /s6-init
+# curl -L -s $S6OVERLAY_RELEASE | tar xvzf - -C /
+# mv /init /s6-init
 
 # clone the remote repos to their local destinations
 git clone "${CORE_REMOTE_REPO}" "${CORE_LOCAL_REPO}"

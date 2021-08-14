@@ -1,13 +1,14 @@
-ARG PIHOLE_BASE
-FROM $PIHOLE_BASE
+FROM debian:buster-slim
 
-ARG PIHOLE_ARCH
-ENV PIHOLE_ARCH "${PIHOLE_ARCH}"
-ARG PIHOLE_TAG
-ENV PIHOLE_TAG "${PIHOLE_TAG}"
-ARG S6_ARCH
-ARG S6_VERSION
-ENV S6OVERLAY_RELEASE "https://github.com/just-containers/s6-overlay/releases/download/${S6_VERSION}/s6-overlay-${S6_ARCH}.tar.gz"
+ENV S6_OVERLAY_VERSION v2.1.0.2
+
+RUN apt update && apt install --no-install-recommends -y curl procps ca-certificates git
+
+ARG TARGETPLATFORM
+RUN if [ "$TARGETPLATFORM" = "linux/amd64" ]; then ARCHITECTURE=amd64; elif [ "$TARGETPLATFORM" = "linux/arm/v7" ]; then ARCHITECTURE=arm; elif [ "$TARGETPLATFORM" = "linux/arm64" ]; then ARCHITECTURE=aarch64; else ARCHITECTURE=amd64; fi \
+    && echo $ARCHITECTURE \
+    && curl -L -s "https://github.com/just-containers/s6-overlay/releases/download/${S6_OVERLAY_VERSION}/s6-overlay-${ARCHITECTURE}.tar.gz" | tar xvzf - -C / \
+    && mv /init /s6-init
 
 COPY install.sh /usr/local/bin/install.sh
 COPY VERSIONS /etc/pi-hole-versions
@@ -23,9 +24,9 @@ COPY s6/service /usr/local/bin/service
 
 # php config start passes special ENVs into
 ARG PHP_ENV_CONFIG
-ENV PHP_ENV_CONFIG "${PHP_ENV_CONFIG}"
+ENV PHP_ENV_CONFIG /etc/lighttpd/conf-enabled/15-fastcgi-php.conf
 ARG PHP_ERROR_LOG
-ENV PHP_ERROR_LOG "${PHP_ERROR_LOG}"
+ENV PHP_ERROR_LOG /var/log/lighttpd/error.log
 COPY ./start.sh /
 COPY ./bash_functions.sh /
 
@@ -48,11 +49,11 @@ ARG PIHOLE_VERSION
 ENV VERSION "${PIHOLE_VERSION}"
 ENV PATH /opt/pihole:${PATH}
 
-ARG NAME
-LABEL image="${NAME}:${PIHOLE_VERSION}_${PIHOLE_ARCH}"
-ARG MAINTAINER
-LABEL maintainer="${MAINTAINER}"
-LABEL url="https://www.github.com/pi-hole/docker-pi-hole"
+# ARG NAME
+# LABEL image="${NAME}:${PIHOLE_VERSION}_${PIHOLE_ARCH}"
+# ARG MAINTAINER
+# LABEL maintainer="${MAINTAINER}"
+# LABEL url="https://www.github.com/pi-hole/docker-pi-hole"
 
 HEALTHCHECK CMD dig +norecurse +retry=0 @127.0.0.1 pi.hole || exit 1
 
