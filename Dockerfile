@@ -4,12 +4,6 @@ ENV S6_OVERLAY_VERSION v2.1.0.2
 
 RUN apt update && apt install --no-install-recommends -y curl procps ca-certificates git
 
-ARG TARGETPLATFORM
-RUN if [ "$TARGETPLATFORM" = "linux/amd64" ]; then ARCHITECTURE=amd64; elif [ "$TARGETPLATFORM" = "linux/arm/v7" ]; then ARCHITECTURE=arm; elif [ "$TARGETPLATFORM" = "linux/arm64" ]; then ARCHITECTURE=aarch64; else ARCHITECTURE=amd64; fi \
-    && echo $ARCHITECTURE \
-    && curl -L -s "https://github.com/just-containers/s6-overlay/releases/download/${S6_OVERLAY_VERSION}/s6-overlay-${ARCHITECTURE}.tar.gz" | tar xvzf - -C / \
-    && mv /init /s6-init
-
 COPY install.sh /usr/local/bin/install.sh
 COPY VERSIONS /etc/pi-hole-versions
 ENV PIHOLE_INSTALL /etc/.pihole/automated\ install/basic-install.sh
